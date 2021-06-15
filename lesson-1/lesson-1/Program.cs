@@ -16,6 +16,7 @@ namespace lesson_1
             DateTime dateTime = DateTime.Now;
 
             Console.WriteLine($"Привет, {name}, сегодня {dateTime.ToShortDateString()}");
+            Console.ReadKey();
         }
     }
 }
