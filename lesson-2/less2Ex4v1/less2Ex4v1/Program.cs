@@ -3,7 +3,7 @@ using System.Globalization;
 using System.IO;
 using System.Threading;
 
-namespace less4Ex4v1
+namespace less2Ex4v1
 {
     class Program
     {
