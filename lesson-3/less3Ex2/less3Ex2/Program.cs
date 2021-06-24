@@ -17,26 +17,28 @@ namespace less3Ex2
          */
         static void Main(string[] args)
         {
-            var phonebook = new string[5, 2];
+            int userName = 0;
+            int phoneNumber = 1;
+            var phoneBook = new string[5, 2];
 
-            phonebook[0, 0] = "Иванов Иван";
-            phonebook[0, 1] = "8-965-568-62-98";
+            phoneBook[0, userName] = "Иванов Иван";
+            phoneBook[0, phoneNumber] = "8-965-568-62-98";
 
-            phonebook[1, 0] = "Сидоров Сидор";
-            phonebook[1, 1] = "8-965-568-62-98";
+            phoneBook[1, userName] = "Сидоров Сидор";
+            phoneBook[1, phoneNumber] = "8-965-568-62-98";
 
-            phonebook[2, 0] = "Петров Пётр";
-            phonebook[2, 1] = "8-965-568-62-98";
+            phoneBook[2, userName] = "Петров Пётр";
+            phoneBook[2, phoneNumber] = "8-965-568-62-98";
 
-            phonebook[3, 0] = "Михайлов Михаил";
-            phonebook[3, 1] = "8-965-568-62-98";
+            phoneBook[3, userName] = "Михайлов Михаил";
+            phoneBook[3, phoneNumber] = "8-965-568-62-98";
 
-            phonebook[4, 0] = "Николаев Николай";
-            phonebook[4, 1] = "8-965-568-62-98";
+            phoneBook[4, userName] = "Николаев Николай";
+            phoneBook[4, phoneNumber] = "8-965-568-62-98";
 
-            for (int i = 0; i < phonebook.GetLength(0); i++)
+            for (int i = 0; i < phoneBook.GetLength(0); i++)
             {
-                Console.WriteLine($"{phonebook[i, 0]}".PadRight(20) + $"{phonebook[i, 1]}");
+                Console.WriteLine($"{phoneBook[i, userName]}".PadRight(20) + $"{phoneBook[i, phoneNumber]}");
             }
 
             Console.ReadKey();
