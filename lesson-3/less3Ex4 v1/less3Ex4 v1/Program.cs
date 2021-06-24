@@ -6,12 +6,17 @@ using System.Threading.Tasks;
 
 namespace less3Ex4
 {
+    
     class Program
     {
         /*
             Владимир Долгуев.
             *«Морской бой»: вывести на экран массив 10х10, состоящий из символов X и O, где Х — элементы кораблей, а О — свободные клетки.
          */
+
+        public static int arrayLenght = 10;
+        public static int arrayWidth = 10;
+
         static void Main(string[] args)
         {
             /*
@@ -28,8 +33,7 @@ namespace less3Ex4
              * и дополнительная матрица, где будут проставляться запрещенные зоны.
              */
 
-            int arrayLenght = 10;
-            int arrayWidth = 10;
+            
             int tryNum = 10;
 
             int kolOne = ParseReadLine("Введите количество однопалубников");
@@ -38,11 +42,10 @@ namespace less3Ex4
             int kolFour = ParseReadLine("Введите количество четырехпалубников");
 
             // Код ниже раскомментировать, если нужно запрашивать у пользователя дополнительные параметры.
-            /*
-            arrayLenght = ParseReadLine("Укажите ширину поля");
-            arrayWidth = ParseReadLine("Укажите высоту поля");
-            tryNum = ParseReadLine("Введите количество попыток построения");
-            */
+            //arrayLenght = ParseReadLine("Укажите ширину поля");
+            //arrayWidth = ParseReadLine("Укажите высоту поля");
+            //tryNum = ParseReadLine("Введите количество попыток построения");
+
 
 
             var testBattleMap = new string[arrayLenght, arrayWidth];
@@ -159,8 +162,8 @@ namespace less3Ex4
                 newSheep = true;
                 tryRand++;
                 position = random.Next(2) == 0; // если 0 - вертикальное, если 1 - горизонтальное расположение
-                xPosStart = random.Next(0, 9 - ((position == horizontal) ? lenght - 1 : 0));
-                yPosStart = random.Next(0, 9 - ((position == vertical) ? lenght - 1 : 0));
+                xPosStart = random.Next(0, arrayLenght  - ((position == horizontal) ? lenght - 1 : 1));
+                yPosStart = random.Next(0, arrayWidth  - ((position == vertical) ? lenght - 1 : 1));
 
                 // проверка в массиве-ограничителе, не столкнемся ли с другим кораблем
             
