@@ -318,7 +318,7 @@ namespace less6Ex1
                 return (Command.Refresh, empty);
             }
             */
-            //string usersChoice = Console.ReadLine();
+            string usersChoice = Console.ReadLine();
             
             var args = usersChoice.Split(' ');            
             switch (args[0].ToUpper())
