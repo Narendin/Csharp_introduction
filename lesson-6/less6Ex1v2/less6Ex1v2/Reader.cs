@@ -7,39 +7,51 @@ namespace less6Ex1v2
     {
         /*
          * Данный код честно скопипастчен с сайта overcoder.net
+         * и честно переделан, чтобы работало как надо
          */
 
         private static Thread inputThread;
         private static AutoResetEvent getInput, gotInput;
         private static ConsoleKeyInfo input;
+        private static bool isInput = false;
 
         static Reader()
-        {
+        {            
             getInput = new AutoResetEvent(false);
             gotInput = new AutoResetEvent(false);
-            inputThread = new Thread(reader);
-            inputThread.IsBackground = true;
-            inputThread.Start();
         }
 
         private static void reader()
         {
-            while (true)
+            while (!isInput)
             {
                 getInput.WaitOne();
-                input = Console.ReadKey();
+                if (!isInput)
+                {
+                    input = Console.ReadKey();
+                    isInput = true;
+                    inputThread.Abort();
+                }                    
                 gotInput.Set();
-            }
+            } 
         }
 
         public static bool TryReadLine(out ConsoleKeyInfo line, int timeOutMillisecs = Timeout.Infinite)
         {
+            isInput = false;
+            inputThread = new Thread(reader);
+            inputThread.IsBackground = true;
+            inputThread.Start();
+
             getInput.Set();
             bool success = gotInput.WaitOne(timeOutMillisecs);
             if (success)
-                line = input;
+            {                
+                line = input;                
+            }                
             else
                 line = new ConsoleKeyInfo();
+
             return success;
         }
     }

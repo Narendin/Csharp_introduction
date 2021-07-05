@@ -343,7 +343,7 @@ namespace less6Ex1v2
             while (!isEnterCompleted)
             {
                 left = Console.CursorLeft;
-                top = Console.CursorTop;              
+                top = Console.CursorTop;
 
                 if (string.IsNullOrEmpty(usersChoice))
                 {
