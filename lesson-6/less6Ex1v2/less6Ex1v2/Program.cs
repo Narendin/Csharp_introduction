@@ -8,27 +8,28 @@ namespace less6Ex1v2
 {
     /*
         Долгуев Владимир.
-        Написать консольное приложение Task Manager, которое выводит на экран 
-        запущенные процессы и позволяет завершить указанный процесс. 
-        Предусмотреть возможность завершения процессов с помощью указания его ID или имени процесса. 
+        Написать консольное приложение Task Manager, которое выводит на экран
+        запущенные процессы и позволяет завершить указанный процесс.
+        Предусмотреть возможность завершения процессов с помощью указания его ID или имени процесса.
         В качестве примера можно использовать консольные утилиты Windows tasklist и taskkill.
      */
 
-    class Program
+    internal class Program
     {
-        static bool isSortByName = true;
-        static List<string> LastCommand = new List<string>();
-        static int autoRefreshSecond = 10;
+        private static bool _isSortByName = true;
+        private static readonly List<string> LastCommand = new List<string>();
+        private static int _autoRefreshSecond = 10;
 
-        static void Main(string[] args)
+        private static void Main()
         {
             Refresh();
             while (true)
             {
                 try
                 {
-                    (Command usersCoice, string[] argument) = ParseUsersChoice();
-                    UserChoiceProcessing(usersCoice, argument);
+                    (Command userChoice, string[] argument) = ParseUsersChoice();
+                    bool isExit = UserChoiceProcessing(userChoice, argument);
+                    if (isExit) break;
                 }
                 catch (Exception ex)
                 {
@@ -41,11 +42,11 @@ namespace less6Ex1v2
         }
 
         /// <summary> Обработка и выполнение введенной пользователем команды </summary>
-        /// <param name="usersCoice"> Введенная команда </param>
+        /// <param name="userChoice"> Введенная команда </param>
         /// <param name="argument"> массив аргументов введенной команды </param>
-        static void UserChoiceProcessing(Command usersCoice, string[] argument)
+        private static bool UserChoiceProcessing(Command userChoice, string[] argument)
         {
-            switch (usersCoice)
+            switch (userChoice)
             {
                 case Command.Kill:
                     if (argument.Length == 3)
@@ -55,34 +56,40 @@ namespace less6Ex1v2
                             case "ID":
                                 KillProcessById(argument[2]);
                                 break;
+
                             case "NAME":
                                 KillProcessByName(argument[2]);
                                 break;
-                            default:
-                                throw new Exception("Команда введена некорректно");
-                        }
-                        Refresh();                        
-                    }
-                    else throw new Exception("Команда введена некорректно");
-                    break;
-                case Command.Sort:
-                    if (argument.Length == 2)
-                    {
-                        switch (argument[1].ToUpper())
-                        {
-                            case "ID":
-                                isSortByName = false;
-                                break;
-                            case "NAME":
-                                isSortByName = true;
-                                break;
+
                             default:
                                 throw new Exception("Команда введена некорректно");
                         }
                         Refresh();
                     }
                     else throw new Exception("Команда введена некорректно");
-                    break;
+                    return false;
+
+                case Command.Sort:
+                    if (argument.Length == 2)
+                    {
+                        switch (argument[1].ToUpper())
+                        {
+                            case "ID":
+                                _isSortByName = false;
+                                break;
+
+                            case "NAME":
+                                _isSortByName = true;
+                                break;
+
+                            default:
+                                throw new Exception("Команда введена некорректно");
+                        }
+                        Refresh();
+                    }
+                    else throw new Exception("Команда введена некорректно");
+                    return false;
+
                 case Command.Prop:
                     if (argument.Length == 3)
                     {
@@ -91,59 +98,66 @@ namespace less6Ex1v2
                             case "ID":
                                 DisplayProcessPropertiesById(argument[2]);
                                 break;
+
                             case "NAME":
                                 DisplayProcessPropertiesByName(argument[2]);
                                 break;
+
                             default:
                                 throw new Exception("Команда введена некорректно");
-                        }                        
+                        }
                     }
                     else throw new Exception("Команда введена некорректно");
-                    break;
+                    return false;
+
                 case Command.Refresh:
                     Refresh();
-                    break;
+                    return false;
+
                 case Command.Help:
                     Help();
-                    break;
+                    return false;
+
                 case Command.GetId:
                     if (argument.Length == 2)
                     {
                         GetIdByName(argument[1]);
                     }
                     else throw new Exception("Команда введена некорректно");
-                    break;
+                    return false;
+
                 case Command.AutoRefresh:
                     if (argument.Length == 2)
                     {
-                        autoRefreshSecond = ParseToInt(argument[1], "ARS");
+                        _autoRefreshSecond = ParseToInt(argument[1], "ARS");
                     }
                     else throw new Exception("Команда введена некорректно");
-                    break;
+                    return false;
+
                 case Command.Exit:
-                    Environment.Exit(0);
-                    break;
+                    return true;
             }
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("Команда выполнена успешно");
             Console.ResetColor();
             Console.WriteLine("Введите команду либо '?' для вызова справки");
+            return false;
         }
 
         /// <summary> Закрытие процесса по его ID </summary>
         /// <param name="stringProcessId">Номер ID в формате строки</param>
-        static void KillProcessById(string stringProcessId)
+        private static void KillProcessById(string stringProcessId)
         {
             int processId = ParseToInt(stringProcessId, "ID");
             //if (!String.IsNullOrEmpty(error)) return error;
-            Process process = GetProcessByID(processId);
+            Process process = GetProcessById(processId);
             //if (!String.IsNullOrEmpty(error)) return error;
             KillProcess(process);
         }
 
         /// <summary> Закрытие процесса по его имени </summary>
         /// <param name="processName">Имя процесса</param>
-        static void KillProcessByName(string processName)
+        private static void KillProcessByName(string processName)
         {
             Process process = GetProcessByName(processName);
             //if (!String.IsNullOrEmpty(error)) return error;
@@ -152,7 +166,7 @@ namespace less6Ex1v2
 
         /// <summary> Закрытие указанного процесса </summary>
         /// <param name="process">Процесс</param>
-        static void KillProcess(Process process)
+        private static void KillProcess(Process process)
         {
             try
             {
@@ -175,7 +189,7 @@ namespace less6Ex1v2
         /// <summary> Получение процесса по его ID </summary>
         /// <param name="processId"> ID процесса</param>
         /// <returns>Возвращает процесс</returns>
-        static Process GetProcessByID(int processId)
+        private static Process GetProcessById(int processId)
         {
             try
             {
@@ -195,7 +209,7 @@ namespace less6Ex1v2
         /// <summary> Получение процесса по его имени </summary>
         /// <param name="processName">Имя процесса</param>
         /// <returns>>Возвращает процесс</returns>
-        static Process GetProcessByName(string processName)
+        private static Process GetProcessByName(string processName)
         {
             Process[] processes = Process.GetProcessesByName(processName);
             switch (processes.Length)
@@ -204,6 +218,7 @@ namespace less6Ex1v2
                     throw new Exception("Процесс с указанным именем не обнаружен");
                 case 1:
                     return processes[0];
+
                 default:
                     throw new Exception("Процессов с указанным именем несколько.\n" +
                                         "Воспользуйтесь аналогичной командой с указанием ID");
@@ -211,12 +226,12 @@ namespace less6Ex1v2
         }
 
         /// <summary> Обновление списка процессов в консоли </summary>
-        static void Refresh()
+        private static void Refresh()
         {
             Console.Clear();
             Process[] processes = Process.GetProcesses();
-            IEnumerable<Process> sortProcesses = new Process[processes.Length];
-            if (isSortByName)
+            IEnumerable<Process> sortProcesses;
+            if (_isSortByName)
             {
                 sortProcesses = from process in processes orderby process.ProcessName, process.Id select process;
             }
@@ -224,24 +239,24 @@ namespace less6Ex1v2
             {
                 sortProcesses = from process in processes orderby process.Id select process;
             }
-            WriteProcessList(sortProcesses);
+            WriteProcessList(sortProcesses.ToArray());
             Console.WriteLine("Введите команду либо '?' для вызова справки");
         }
 
         /// <summary> Отображение свойств процесса по его ID </summary>
         /// <param name="stringProcessId">Номер ID в формате строки</param>
-        static void DisplayProcessPropertiesById(string stringProcessId)
+        private static void DisplayProcessPropertiesById(string stringProcessId)
         {
             int processId = ParseToInt(stringProcessId, "ID");
             //if (!String.IsNullOrEmpty(error)) return error;
-            Process process = GetProcessByID(processId);
+            Process process = GetProcessById(processId);
             //if (!String.IsNullOrEmpty(error)) return error;
             DisplayProcessProperties(process);
         }
 
         /// <summary> Отображение свойств процесса по его имени </summary>
         /// <param name="processName">Имя процесса</param>
-        static void DisplayProcessPropertiesByName(string processName)
+        private static void DisplayProcessPropertiesByName(string processName)
         {
             Process process = GetProcessByName(processName);
             //if (!String.IsNullOrEmpty(error)) return error;
@@ -250,22 +265,22 @@ namespace less6Ex1v2
 
         /// <summary> Отображение свойств процесса на экран косноли </summary>
         /// <param name="process">Процесс</param>
-        static void DisplayProcessProperties(Process process)
+        private static void DisplayProcessProperties(Process process)
         {
             Type myType = typeof(Process);
-            PropertyInfo[] myProeprties = myType.GetProperties();
+            PropertyInfo[] myProperties = myType.GetProperties();
 
-            foreach (var propetry in myProeprties)
+            foreach (var property in myProperties)
             {
                 try
                 {
-                    Console.WriteLine($"{propetry.Name}".PadRight(30, '-') + (propetry.GetValue(process) ?? "null"));
+                    Console.WriteLine($"{property.Name}".PadRight(30, '-') + (property.GetValue(process) ?? "null"));
                 }
                 catch (Exception ex)
                 {
-                    Console.Write($"{propetry.Name}".PadRight(30, '-'));
+                    Console.Write($"{property.Name}".PadRight(30, '-'));
                     Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine(ex.InnerException.Message);
+                    Console.WriteLine(ex.InnerException?.Message ?? ex.Message);
                     Console.ResetColor();
                 }
             }
@@ -273,56 +288,90 @@ namespace less6Ex1v2
 
         /// <summary> Приведение строкового типа в тип int </summary>
         /// <param name="stringToInt">Номер в формате строки</param>
+        /// <param name="valueType">Тип переменной (ID, ARS и т.д.)</param>
         /// <returns>Возвращает номер в формате int</returns>
-        static int ParseToInt(string stringToInt, string valueType)
+        private static int ParseToInt(string stringToInt, string valueType)
         {
             string result = string.Empty;
-            int resultInt = 0;
             try
-            {                
-                 resultInt = int.Parse(stringToInt);
+            {
+                int resultInt = int.Parse(stringToInt);
                 if (resultInt >= 0)
                 {
                     return resultInt;
                 }
-                if (valueType == "ID") result = "ID процесса не может быть отрицательным.";
-                else if (valueType == "ARS") result = "Время автообновления не может быть отрицательным";
+                switch (valueType)
+                {
+                    case "ID":
+                        result = "ID процесса не может быть отрицательным.";
+                        break;
+
+                    case "ARS":
+                        result = "Время автообновления не может быть отрицательным";
+                        break;
+                }
                 throw new Exception(result);
             }
             catch (ArgumentNullException)
             {
-                if (valueType == "ID") result = "ID процесса не указан.";
-                else if (valueType == "ARS") result = "Время автообновления не указано";
+                switch (valueType)
+                {
+                    case "ID":
+                        result = "ID процесса не указан.";
+                        break;
+
+                    case "ARS":
+                        result = "Время автообновления не указано";
+                        break;
+                }
+
                 throw new Exception(result);
             }
             catch (FormatException)
             {
-                if (valueType == "ID") result = "Неверно указан ID процесса. Присутствуют недопустимые символы.";
-                else if (valueType == "ARS") result = "Неверно указан время автообновления. Присутствуют недопустимые символы.";
+                switch (valueType)
+                {
+                    case "ID":
+                        result = "Неверно указан ID процесса. Присутствуют недопустимые символы.";
+                        break;
+
+                    case "ARS":
+                        result = "Неверно указан время автообновления. Присутствуют недопустимые символы.";
+                        break;
+                }
+
                 throw new Exception(result);
             }
             catch (OverflowException)
             {
-                if (valueType == "ID") result = "ID процесса содержит излишнее количество символов.\n";
-                else if (valueType == "ARS") result = "Время автообновления содержит излишнее количество символов.\n";
+                switch (valueType)
+                {
+                    case "ID":
+                        result = "ID процесса содержит излишнее количество символов.\n";
+                        break;
+
+                    case "ARS":
+                        result = "Время автообновления содержит излишнее количество символов.\n";
+                        break;
+                }
+
                 throw new Exception(result +
                                     "Проверьте правильность написания.\n" +
                                     "В случае, если ошибок не найдено, обратитесь к системному администратору.");
             }
-            
         }
 
         /// <summary> Вывод команд, доступные пользователю </summary>
-        static void Help()
+        private static void Help()
         {
             Console.WriteLine("Kill ID 'ID'/Name 'Name' - завершение процесса по ID либо имени. Пример: Kill ID 2012");
-            Console.WriteLine("Sort ID 'ID'/Name 'Name' - отсортировать процессы по ID либо имени. Пример: Sort Name");
+            Console.WriteLine("Sort ID/Name ------------- отсортировать процессы по ID либо имени. Пример: Sort Name");
             Console.WriteLine("Prop ID 'ID'/Name 'Name' - вывести свойства процесса ID либо имени. Пример: Prop Name notepad");
-            Console.WriteLine("GetId 'Name' - получить список всех id для указанного имени процесса. Пример: GetId notepad");
-            Console.WriteLine("Refresh - обновить список процессов и вывести на экран");
-            Console.WriteLine("AutoRefresh 'second' - автообновление списка процессов. Введите AutoRefresh 0 для отключения автообновления\n" +
-                              "                       По умолчанию время автообновления - 10 секунд.");
-            Console.WriteLine("Exit - выход из программы");
+            Console.WriteLine("GetId 'Name' ------------- получить список всех id для указанного имени процесса. Пример: GetId notepad");
+            Console.WriteLine("Refresh ------------------ обновить список процессов и вывести на экран");
+            Console.WriteLine("AutoRefresh 'second' ----- автообновление списка процессов. Введите AutoRefresh 0 для отключения автообновления\n" +
+                              "                           По умолчанию время автообновления - 10 секунд.");
+            Console.WriteLine("Exit --------------------- выход из программы");
         }
 
         /// <summary>
@@ -334,24 +383,24 @@ namespace less6Ex1v2
         /// </summary>
         /// <param name="second"> Частота, с которой обновлять список процессов</param>
         /// <returns> Введенная пользователем команда </returns>
-        static string GetUserCommand(int second)
+        private static string GetUserCommand(int second)
         {
-            string usersChoice = string.Empty;
+            string userChoice = string.Empty;
             ConsoleKeyInfo symbol;
             bool isEnterCompleted = false;
-            int left, top, numOfLastCommand = 0;
+            int numOfLastCommand = 0;
             while (!isEnterCompleted)
             {
-                left = Console.CursorLeft;
-                top = Console.CursorTop;
+                var left = Console.CursorLeft;
+                var top = Console.CursorTop;
 
-                if (string.IsNullOrEmpty(usersChoice))
+                if (string.IsNullOrEmpty(userChoice))
                 {
                     bool isEnterUserData = Reader.TryReadLine(out symbol, second * 1000);
                     if (!isEnterUserData)
                     {
                         Refresh();
-                        usersChoice = string.Empty;
+                        userChoice = string.Empty;
                         continue;
                     }
                 }
@@ -364,8 +413,9 @@ namespace less6Ex1v2
                     case ConsoleKey.Enter:
                         isEnterCompleted = true;
                         break;
+
                     case ConsoleKey.Backspace:
-                        if (usersChoice.Length > 0)
+                        if (!string.IsNullOrEmpty(userChoice))
                         {
                             if (left > 0)
                             {
@@ -375,90 +425,109 @@ namespace less6Ex1v2
                             }
                             if (left == 1)
                             {
-                                usersChoice = string.Empty;
+                                userChoice = string.Empty;
                             }
                             else
                             {
-                                usersChoice = usersChoice.Substring(0, usersChoice.Length - 1);
-                            }                            
+                                userChoice = userChoice.Substring(0, userChoice.Length - 1);
+                            }
                         }
-                        break;                                      
+                        break;
+
                     case ConsoleKey.UpArrow:
                         if (LastCommand.Count > 0 && numOfLastCommand < LastCommand.Count)
                         {
                             Console.SetCursorPosition(0, top);
-                            Console.Write(new string(' ', usersChoice.Length + 10));
-                            if (numOfLastCommand < LastCommand.Count) numOfLastCommand++;
-                            Console.SetCursorPosition(0, top);
-                            usersChoice = LastCommand[LastCommand.Count - numOfLastCommand];
-                            Console.Write(usersChoice);                            
+                            if (userChoice != null)
+                            {
+                                Console.Write(new string(' ', userChoice.Length + 10));
+                                if (numOfLastCommand < LastCommand.Count) numOfLastCommand++;
+                                Console.SetCursorPosition(0, top);
+                            }
+
+                            userChoice = LastCommand[LastCommand.Count - numOfLastCommand];
+                            Console.Write(userChoice);
                         }
                         else Console.SetCursorPosition(left, top);
                         break;
+
                     case ConsoleKey.DownArrow:
                         if (LastCommand.Count > 0 && numOfLastCommand > 0)
                         {
                             Console.SetCursorPosition(0, top);
-                            Console.Write(new string(' ', usersChoice.Length + 10));
-                            numOfLastCommand--;
-                            if (numOfLastCommand == 0)
+                            if (userChoice != null)
                             {
-                                usersChoice = string.Empty;
+                                Console.Write(new string(' ', userChoice.Length + 10));
+                                numOfLastCommand--;
+                                if (numOfLastCommand == 0)
+                                {
+                                    userChoice = string.Empty;
+                                }
+                                else
+                                {
+                                    userChoice = LastCommand[LastCommand.Count - numOfLastCommand];
+                                }
+
+                                Console.SetCursorPosition(0, top);
+                                Console.Write(userChoice);
                             }
-                            else
-                            {
-                                usersChoice = LastCommand[LastCommand.Count - numOfLastCommand];
-                            }
-                            Console.SetCursorPosition(0, top);                            
-                            Console.Write(usersChoice);
                         }
                         else Console.SetCursorPosition(left, top);
                         break;
+
                     default:
-                        usersChoice += symbol.KeyChar;
+                        userChoice += symbol.KeyChar;
                         break;
                 }
             }
-            if (!string.IsNullOrEmpty(usersChoice))
+            if (!string.IsNullOrEmpty(userChoice))
             {
-                LastCommand.Add(usersChoice);
-            }            
-            return usersChoice.Trim();
+                LastCommand.Add(userChoice);
+            }
+            return userChoice?.Trim();
         }
 
         /// <summary> Обработчик введенных пользователем команд</summary>
         /// <returns>Возвращает распознанную команду либо ошибку и массив введенных аргументов</returns>
-        static (Command, string[]) ParseUsersChoice()
+        private static (Command, string[]) ParseUsersChoice()
         {
             string[] empty = { string.Empty };
-            string usersChoice = string.Empty;
-            if (autoRefreshSecond > 0)
+            string usersChoice;
+            if (_autoRefreshSecond > 0)
             {
-                usersChoice = GetUserCommand(autoRefreshSecond);
+                usersChoice = GetUserCommand(_autoRefreshSecond);
             }
             else
             {
-                usersChoice = Console.ReadLine().Trim();
+                usersChoice = Console.ReadLine()?.Trim();
             }
-            var args = usersChoice.Split(' ');
-            switch (args[0].ToUpper())
+            var args = usersChoice?.Split(' ');
+            switch (args?[0].ToUpper())
             {
                 case "KILL":
                     return (Command.Kill, args);
+
                 case "SORT":
                     return (Command.Sort, args);
+
                 case "PROP":
                     return (Command.Prop, args);
+
                 case "GETID":
                     return (Command.GetId, args);
+
                 case "REFRESH":
                     return (Command.Refresh, empty);
+
                 case "AUTOREFRESH":
                     return (Command.AutoRefresh, args);
+
                 case "?":
                     return (Command.Help, empty);
+
                 case "EXIT":
                     return (Command.Exit, empty);
+
                 default:
                     throw new Exception("Команда введена некорректно");
             }
@@ -466,7 +535,7 @@ namespace less6Ex1v2
 
         /// <summary> Получение и вывод на экран консоли списка процессов с одинаковым именем</summary>
         /// <param name="processName">Имя процесса</param>
-        static void GetIdByName(string processName)
+        private static void GetIdByName(string processName)
         {
             Process[] processes = Process.GetProcessesByName(processName);
             switch (processes.Length)
@@ -480,22 +549,22 @@ namespace less6Ex1v2
         }
 
         /// <summary> Вывод на экран консоли списка процессов </summary>
-        /// <param name="processes">Список процессов в массиве либо формате IEnumerable<Process></param>
-        static void WriteProcessList(IEnumerable<Process> processes)
+        /// <param name="processes">Список процессов в массиве либо формате IEnumerable(Process)</param>
+        private static void WriteProcessList(Process[] processes)
         {
             int maxNameLength = (from process in processes select process.ProcessName.Length).Max();
-            int maxIDLength = (from process in processes select process.Id.ToString().Length).Max();
+            int maxIdLength = (from process in processes select process.Id.ToString().Length).Max();
             int maxNumLength = (processes.Count() - 1).ToString().Length;
 
-            Console.WriteLine($"| №".PadRight(maxNumLength + 2) + $" | ID".PadRight(maxIDLength + 3) + " | Process".PadRight(maxNameLength + 3) + " |");
-            Console.WriteLine(new string('_', maxNumLength + maxIDLength + maxNameLength + 10));
+            Console.WriteLine($"| №".PadRight(maxNumLength + 2) + $" | ID".PadRight(maxIdLength + 3) + " | Process".PadRight(maxNameLength + 3) + " |");
+            Console.WriteLine(new string('_', maxNumLength + maxIdLength + maxNameLength + 10));
             int processNumber = 0;
             foreach (var process in processes)
             {
                 processNumber++;
-                Console.WriteLine($"| {processNumber}".PadRight(maxNumLength + 2) + $" | {process.Id}".PadRight(maxIDLength + 3) + $" | {process.ProcessName}".PadRight(maxNameLength + 3) + " |");
+                Console.WriteLine($"| {processNumber}".PadRight(maxNumLength + 2) + $" | {process.Id}".PadRight(maxIdLength + 3) + $" | {process.ProcessName}".PadRight(maxNameLength + 3) + " |");
             }
-            Console.WriteLine(new string('_', maxNumLength + maxIDLength + maxNameLength + 10));
+            Console.WriteLine(new string('_', maxNumLength + maxIdLength + maxNameLength + 10));
         }
     }
 }
