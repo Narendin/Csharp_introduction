@@ -3,55 +3,44 @@ using System.Threading;
 
 namespace less6Ex1v2
 {
-    class Reader
+    internal class Reader
     {
         /*
          * Данный код честно скопипастчен с сайта overcoder.net
          * и честно переделан, чтобы работало как надо
          */
 
-        private static Thread inputThread;
-        private static AutoResetEvent getInput, gotInput;
-        private static ConsoleKeyInfo input;
-        private static bool isInput = false;
+        private static readonly AutoResetEvent GetInput;
+        private static readonly AutoResetEvent GotInput;
+        private static ConsoleKeyInfo _input;
+        private static bool _isInput;
 
         static Reader()
-        {            
-            getInput = new AutoResetEvent(false);
-            gotInput = new AutoResetEvent(false);
+        {
+            GetInput = new AutoResetEvent(false);
+            GotInput = new AutoResetEvent(false);
+            var inputThread = new Thread(ReaderThread) { IsBackground = true };
+            inputThread.Start();
         }
 
-        private static void reader()
+        private static void ReaderThread()
         {
-            while (!isInput)
+            while (true)
             {
-                getInput.WaitOne();
-                if (!isInput)
-                {
-                    input = Console.ReadKey();
-                    isInput = true;
-                    inputThread.Abort();
-                }                    
-                gotInput.Set();
-            } 
+                GetInput.WaitOne();
+                if (_isInput) continue;
+                _input = Console.ReadKey();
+                _isInput = true;
+                GotInput.Set();
+            }
         }
 
         public static bool TryReadLine(out ConsoleKeyInfo line, int timeOutMillisecs = Timeout.Infinite)
         {
-            isInput = false;
-            inputThread = new Thread(reader);
-            inputThread.IsBackground = true;
-            inputThread.Start();
-
-            getInput.Set();
-            bool success = gotInput.WaitOne(timeOutMillisecs);
-            if (success)
-            {                
-                line = input;                
-            }                
-            else
-                line = new ConsoleKeyInfo();
-
+            GetInput.Set();
+            _isInput = false;
+            var success = GotInput.WaitOne(timeOutMillisecs);
+            line = success ? _input : new ConsoleKeyInfo();
             return success;
         }
     }
